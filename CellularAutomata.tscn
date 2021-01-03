@@ -1,0 +1,101 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://render.shader" type="Shader" id=1]
+[ext_resource path="res://cellular_automata.gd" type="Script" id=2]
+[ext_resource path="res://world.png" type="Texture" id=3]
+[ext_resource path="res://simulation.shader" type="Shader" id=4]
+
+[sub_resource type="ShaderMaterial" id=1]
+shader = ExtResource( 4 )
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = ExtResource( 1 )
+
+[node name="CellularAutomata" type="Node"]
+script = ExtResource( 2 )
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="GUI" type="MarginContainer" parent="CanvasLayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_constants/margin_right = 20
+custom_constants/margin_top = 20
+custom_constants/margin_left = 20
+custom_constants/margin_bottom = 20
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Selection" type="PanelContainer" parent="CanvasLayer/GUI"]
+margin_left = 478.0
+margin_top = 20.0
+margin_right = 546.0
+margin_bottom = 50.0
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="Material" type="HBoxContainer" parent="CanvasLayer/GUI/Selection"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 61.0
+margin_bottom = 23.0
+alignment = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Color" type="ColorRect" parent="CanvasLayer/GUI/Selection/Material"]
+margin_right = 16.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 16, 16 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="CanvasLayer/GUI/Selection/Material"]
+margin_left = 20.0
+margin_top = 1.0
+margin_right = 54.0
+margin_bottom = 15.0
+text = "Label"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Simulation" type="ViewportContainer" parent="."]
+modulate = Color( 0, 0, 0, 0 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Viewport" type="Viewport" parent="Simulation"]
+size = Vector2( 1024, 600 )
+transparent_bg = true
+handle_input_locally = false
+disable_3d = true
+keep_3d_linear = true
+usage = 0
+render_target_v_flip = true
+render_target_clear_mode = 1
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="World" type="Sprite" parent="Simulation/Viewport"]
+material = SubResource( 1 )
+texture = ExtResource( 3 )
+centered = false
+
+[node name="Brush" type="Polygon2D" parent="Simulation/Viewport"]
+visible = false
+polygon = PoolVector2Array( -5, -5, 5, -5, 5, 5, -5, 5 )
+
+[node name="Render" type="Node2D" parent="."]
+material = SubResource( 2 )
+
+[node name="World" type="Sprite" parent="Render"]
+use_parent_material = true
+z_index = 1
+centered = false
