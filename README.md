@@ -3,8 +3,6 @@ GPU Cellular Automata Template
 
 GPU-accelerated cellular automata template in Godot.
 
-Uses GLSL3, but it should be possible to run it on GLSL2 with minor tweaks.
-
 ![](screen/screen1.jpg)
 
 ## Controls

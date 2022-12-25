@@ -44,16 +44,16 @@ func _input(event):
 		
 	elif event is InputEventKey:
 		if event.pressed:
-			if event.scancode == KEY_SPACE:
-				$Simulation/Viewport.render_target_update_mode = Viewport.UPDATE_ONCE
-			elif event.scancode == KEY_ENTER:
-				var is_paused = $Simulation/Viewport.render_target_update_mode != Viewport.UPDATE_ALWAYS
-				var new_mode = Viewport.UPDATE_ALWAYS if is_paused else Viewport.UPDATE_DISABLED
+			if event.keycode == KEY_SPACE:
+				$Simulation/Viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+			elif event.keycode == KEY_ENTER:
+				var is_paused = $Simulation/Viewport.render_target_update_mode != SubViewport.UPDATE_ALWAYS
+				var new_mode = SubViewport.UPDATE_ALWAYS if is_paused else SubViewport.UPDATE_DISABLED
 				$Simulation/Viewport.render_target_update_mode = new_mode
 	
 	elif event is InputEventMouseButton:
 		# Mouse wheel to change material.
-		if event.button_index == BUTTON_WHEEL_UP || event.button_index == BUTTON_WHEEL_DOWN:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP || event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			if event.pressed:
 				var current_material = 0
 				for i in range(materials.size()):
@@ -61,15 +61,15 @@ func _input(event):
 						current_material = i
 						break
 				
-				var offset = -1 if event.button_index == BUTTON_WHEEL_UP else +1
+				var offset = -1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else +1
 				var set_material = (current_material + offset) % materials.size()
 				
 				$Simulation/Viewport/Brush.color = materials[set_material].color
-				$CanvasLayer/GUI/Selection/Material/Color.color = materials[set_material].color
-				$CanvasLayer/GUI/Selection/Material/Label.text = materials[set_material].name
+				$CanvasLayer/GUI/Selection/Margin/Material/Color.color = materials[set_material].color
+				$CanvasLayer/GUI/Selection/Margin/Material/Label.text = materials[set_material].name
 				
 				_material_opacity = 400
 		
 		# Click to paint.
-		elif event.button_index == BUTTON_LEFT:
+		elif event.button_index == MOUSE_BUTTON_LEFT:
 			$Simulation/Viewport/Brush.visible = event.pressed
