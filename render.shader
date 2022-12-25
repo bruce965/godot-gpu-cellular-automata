@@ -9,10 +9,12 @@ float rand(vec2 coords) {
 }
 
 void fragment() {
+	ivec2 uv = ivec2(UV / TEXTURE_PIXEL_SIZE);
+
 	// Get the color of this pixel and its neighbours.
-	vec4 here = texture(TEXTURE, UV);
-	vec4 up = texture(TEXTURE, UV + vec2(0, -1) * TEXTURE_PIXEL_SIZE);
-	vec4 down = texture(TEXTURE, UV + vec2(0, +1) * TEXTURE_PIXEL_SIZE);
+	vec4 here = texelFetch(TEXTURE, uv, 0);
+	vec4 up = texelFetch(TEXTURE, uv + ivec2(0, -1), 0);
+	vec4 down = texelFetch(TEXTURE, uv + ivec2(0, +1), 0);
 	
 	// Use the color of this pixel.
 	COLOR = here;

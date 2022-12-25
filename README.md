@@ -32,4 +32,4 @@ Setup and input are handled from [cellular_automata.gd](cellular_automata.gd).
 
 ## License
 
-Copyright (c) 2021 Fabio Iotti. Released under the [MIT License](LICENSE).
+Copyright (c) 2021-2022 Fabio Iotti. Released under the [MIT License](LICENSE).

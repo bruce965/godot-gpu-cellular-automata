@@ -13,33 +13,33 @@ const vec4 fire  = vec4(255,   0,   0, 255) / 255.;
 const vec4 steam = vec4(136, 164, 201, 255) / 255.;
 
 // Random number generator.
-float rand(float time, vec2 coords) {
-	return fract(sin(dot(coords - 0.1, vec2(12.9898,78.233)) + time) * 43758.5453);
+float rand(float time, ivec2 coords) {
+	return fract(sin(dot(vec2(coords) - 0.1, vec2(12.9898,78.233)) + time) * 43758.5453);
 }
 
 // Compute the movement performed by the cell at the specified UV.
 // Customize this function to alter material physics.
-bool isMovingFrom(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec2 uvNew) {
+bool isMovingFrom(sampler2D tex, ivec2 uv, float time, out ivec2 uvNew) {
 	// Calculate the UVs of the neigbours.
-	vec2 uvUp        = uv + vec2( 0, -1) * pixelSize;
-	vec2 uvDown      = uv + vec2( 0, +1) * pixelSize;
-	vec2 uvLeft      = uv + vec2(-1,  0) * pixelSize;
-	vec2 uvRight     = uv + vec2(+1,  0) * pixelSize;
-	vec2 uvUpLeft    = uv + vec2(-1, -1) * pixelSize;
-	vec2 uvUpRight   = uv + vec2(+1, -1) * pixelSize;
-	vec2 uvDownLeft  = uv + vec2(-1, +1) * pixelSize;
-	vec2 uvDownRight = uv + vec2(+1, +1) * pixelSize;
+	ivec2 uvUp        = uv + ivec2( 0, -1);
+	ivec2 uvDown      = uv + ivec2( 0, +1);
+	ivec2 uvLeft      = uv + ivec2(-1,  0);
+	ivec2 uvRight     = uv + ivec2(+1,  0);
+	ivec2 uvUpLeft    = uv + ivec2(-1, -1);
+	ivec2 uvUpRight   = uv + ivec2(+1, -1);
+	ivec2 uvDownLeft  = uv + ivec2(-1, +1);
+	ivec2 uvDownRight = uv + ivec2(+1, +1);
 	
 	// Get the color of this pixel and its neighbours.
-	vec4 here      = texture(tex, uv         );
-	vec4 up        = texture(tex, uvUp       );
-	vec4 down      = texture(tex, uvDown     );
-	vec4 left      = texture(tex, uvLeft     );
-	vec4 right     = texture(tex, uvRight    );
-	vec4 upLeft    = texture(tex, uvUpLeft   );
-	vec4 upRight   = texture(tex, uvUpRight  );
-	vec4 downLeft  = texture(tex, uvDownLeft );
-	vec4 downRight = texture(tex, uvDownRight);
+	vec4 here      = texelFetch(tex, uv         , 0);
+	vec4 up        = texelFetch(tex, uvUp       , 0);
+	vec4 down      = texelFetch(tex, uvDown     , 0);
+	vec4 left      = texelFetch(tex, uvLeft     , 0);
+	vec4 right     = texelFetch(tex, uvRight    , 0);
+	vec4 upLeft    = texelFetch(tex, uvUpLeft   , 0);
+	vec4 upRight   = texelFetch(tex, uvUpRight  , 0);
+	vec4 downLeft  = texelFetch(tex, uvDownLeft , 0);
+	vec4 downRight = texelFetch(tex, uvDownRight, 0);
 	
 	// powders
 	if (here == sand) {
@@ -86,9 +86,9 @@ bool isMovingFrom(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec2 u
 			rand(time + 3., uv) > 0.5 ? +1 : -1
 		);
 		
-		vec2 uvNeighbor = uv + vec2(rand) * pixelSize;
+		ivec2 uvNeighbor = uv + rand;
 		
-		if (texture(tex, uvNeighbor) == air) {
+		if (texelFetch(tex, uvNeighbor, 0) == air) {
 			uvNew = uvNeighbor;
 			return true;
 		}
@@ -99,8 +99,8 @@ bool isMovingFrom(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec2 u
 
 // Check if any of the neighbors of the cell at the specified UV wants to occupy the cell.
 // Modify this function to customize the radius of interaction between cells.
-bool isMovingTo(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec2 uvSource) {
-	vec4 here = texture(tex, uv);
+bool isMovingTo(sampler2D tex, ivec2 uv, float time, out ivec2 uvSource) {
+	vec4 here = texelFetch(tex, uv, 0);
 	
 	if (here == air) {
 		ivec2 rand = ivec2(
@@ -114,10 +114,10 @@ bool isMovingTo(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec2 uvS
 				if (ivec2(x, y) == ivec2(0, 0))
 					continue;
 
-				vec2 uvNeighbor = uv + vec2(ivec2(x, y) * rand) * pixelSize;
+				ivec2 uvNeighbor = uv + ivec2(x, y) * rand;
 
-				vec2 uvNew;
-				if (isMovingFrom(tex, uvNeighbor, pixelSize, time, uvNew) && uvNew == uv) {
+				ivec2 uvNew;
+				if (isMovingFrom(tex, uvNeighbor, time, uvNew) && uvNew == uv) {
 					// Neighbor moved to this cell.
 					uvSource = uvNeighbor;
 					return true;
@@ -132,17 +132,17 @@ bool isMovingTo(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec2 uvS
 
 // Check if the particle in a cell is morphing into a different material.
 // Modify the function to alter interactions between different materials.
-bool isMorphing(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec4 material) {
+bool isMorphing(sampler2D tex, ivec2 uv, float time, out vec4 material) {
 	// Get the color of this pixel and its neighbours.
-	vec4 here      = texture(tex, uv         );
-	vec4 up        = texture(tex, uv + vec2( 0, -1) * pixelSize);
-	vec4 down      = texture(tex, uv + vec2( 0, +1) * pixelSize);
-	vec4 left      = texture(tex, uv + vec2(-1,  0) * pixelSize);
-	vec4 right     = texture(tex, uv + vec2(+1,  0) * pixelSize);
-	vec4 upLeft    = texture(tex, uv + vec2(-1, -1) * pixelSize);
-	vec4 upRight   = texture(tex, uv + vec2(+1, -1) * pixelSize);
-	vec4 downLeft  = texture(tex, uv + vec2(-1, +1) * pixelSize);
-	vec4 downRight = texture(tex, uv + vec2(+1, +1) * pixelSize);
+	vec4 here      = texelFetch(tex, uv                , 0);
+	vec4 up        = texelFetch(tex, uv + ivec2( 0, -1), 0);
+	vec4 down      = texelFetch(tex, uv + ivec2( 0, +1), 0);
+	vec4 left      = texelFetch(tex, uv + ivec2(-1,  0), 0);
+	vec4 right     = texelFetch(tex, uv + ivec2(+1,  0), 0);
+	vec4 upLeft    = texelFetch(tex, uv + ivec2(-1, -1), 0);
+	vec4 upRight   = texelFetch(tex, uv + ivec2(+1, -1), 0);
+	vec4 downLeft  = texelFetch(tex, uv + ivec2(-1, +1), 0);
+	vec4 downRight = texelFetch(tex, uv + ivec2(+1, +1), 0);
 	
 	if (here == water) {
 		// Water in contact with lava turns into steam.
@@ -227,48 +227,47 @@ bool isMorphing(sampler2D tex, vec2 uv, vec2 pixelSize, float time, out vec4 mat
 }
 
 void fragment() {
+	ivec2 uv = ivec2(UV / TEXTURE_PIXEL_SIZE);
+	
 	vec4 newMaterial;
-	if (isMorphing(TEXTURE, UV, TEXTURE_PIXEL_SIZE, TIME, newMaterial)) {
+	if (isMorphing(TEXTURE, uv, TIME, newMaterial)) {
 		// The particle in this cell morphed into a different material.
 		COLOR = newMaterial;
 	}
 	else {
-		vec2 uvNew;
-		if (isMovingFrom(TEXTURE, UV, TEXTURE_PIXEL_SIZE, TIME, uvNew)) {
+		ivec2 uvNew;
+		if (isMovingFrom(TEXTURE, uv, TIME, uvNew)) {
 			// The occupant of this cell is trying to move to another cell...
-			vec2 uvSource;
-			if (isMorphing(TEXTURE, uvNew, TEXTURE_PIXEL_SIZE, TIME, newMaterial)) {
+			ivec2 uvSource;
+			if (isMorphing(TEXTURE, uvNew, TIME, newMaterial)) {
 				// Failed to move because the destination morphed.
-				COLOR = texture(TEXTURE, UV);
+				COLOR = textureLod(TEXTURE, UV, 0);
 			}
-			else if (isMovingTo(TEXTURE, uvNew, TEXTURE_PIXEL_SIZE, TIME, uvSource) && uvSource == UV) {
+			else if (isMovingTo(TEXTURE, uvNew, TIME, uvSource) && uvSource == uv) {
 				// The occupant moved to another cell, clear this cell.
 				COLOR = air;
 			}
 			else {
 				// The occupant failed to move because another particle moved in first.
-				COLOR = texture(TEXTURE, UV);
+				COLOR = texelFetch(TEXTURE, uv, 0);
 			}
 		}
 		else {
-			vec2 uvSource;
-			if (isMovingTo(TEXTURE, UV, TEXTURE_PIXEL_SIZE, TIME, uvSource)) {
-				if (isMorphing(TEXTURE, uvSource, TEXTURE_PIXEL_SIZE, TIME, newMaterial)) {
+			ivec2 uvSource;
+			if (isMovingTo(TEXTURE, uv, TIME, uvSource)) {
+				if (isMorphing(TEXTURE, uvSource, TIME, newMaterial)) {
 					// A particle wanted to move into this cell, but couldn't do it because it morphed.
-					COLOR = texture(TEXTURE, UV);
+					COLOR = texelFetch(TEXTURE, uv, 0);
 				}
 				else {
 					// A particle moved into this cell.
-					COLOR = texture(TEXTURE, uvSource);
+					COLOR = texelFetch(TEXTURE, uvSource, 0);
 				}
 			}
 			else {
 				// No change to the particle in this cell.
-				COLOR = texture(TEXTURE, UV);
+				COLOR = texelFetch(TEXTURE, uv, 0);
 			}
 		}
 	}
-	
-	if ((UV / TEXTURE_PIXEL_SIZE).y == 1.)
-		COLOR = dirt;
 }
